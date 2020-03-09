@@ -3,7 +3,6 @@ import numpy as np
 
 class DataLoader:
 
-
     def __init__(self, header_size=6, eof_size=2):
         self.header_size = header_size
         self.eof_size = eof_size
