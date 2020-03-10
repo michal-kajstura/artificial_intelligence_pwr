@@ -12,7 +12,9 @@ class GreedyAlgorithm:
         current_city = start_city
         genome = [current_city]
         while cities_to_visit:
-            distances = {c: norm(self.cities[current_city] - self.cities[c]) for c in cities_to_visit}
+            distances = {
+                c: norm(self.cities[current_city] - self.cities[c]) for c in cities_to_visit
+            }
             current_city = min(distances, key=distances.get)
             cities_to_visit.remove(current_city)
             genome.append(current_city)
