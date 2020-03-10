@@ -1,26 +1,40 @@
 import numpy as np
 
+from Assignment_1.src.fitness import FitnessFunction
+
 
 class GeneticAlgorithm:
-    def __init__(self, cities, fitness_function, config):
-        self.cities = cities
-        self.fitness_function = fitness_function
+    def __init__(self, config):
         self.config = config
-        self.population = [Individual(genome_len=len(cities))
-                           for _ in range(config['population_size'])]
-        self._evaluate_population()
         self.selector = Tournament(config['tournament_size'])
+        self.best_ever = None
 
-    def __call__(self, iterations=100):
-        for _ in range(iterations):
+    def __call__(self, cities, **kwargs):
+        self.fitness_function = FitnessFunction(cities)
+        self._create_population(len(cities))
+        self._evaluate_population()
+        for _ in range(self.config['generations']):
             self.population = self._build_new_population()
+
+            if 'logger' in kwargs.keys():
+                fitnesses = [ind.fitness for ind in self.population]
+                kwargs['logger'].log({
+                    'best': min(fitnesses),
+                    'worst': max(fitnesses),
+                    'average': sum(fitnesses) / len(fitnesses)
+                })
+
+        return self.best_ever.genome
+
+    def _create_population(self, genome_len):
+        self.population = [Individual(genome_len=genome_len)
+                           for _ in range(self.config['population_size'])]
 
     def _evaluate_population(self):
         for individual in self.population:
             individual.fitness = self.fitness_function(individual.genome)
 
     def _build_new_population(self):
-        best_fitness = np.inf
         new_population = []
         while len(new_population) < len(self.population):
             first_individual = self.selector.select(self.population)
@@ -34,10 +48,10 @@ class GeneticAlgorithm:
 
             new_individual.fitness = self.fitness_function(new_individual.genome)
             new_population.append(new_individual)
-            if new_individual.fitness < best_fitness:
-                best_fitness = new_individual.fitness
 
-        print(best_fitness)
+            if self.best_ever is None or new_individual.fitness > self.best_ever.fitness:
+                self.best_ever = new_individual
+
         return new_population
 
     @staticmethod
@@ -102,7 +116,7 @@ class Tournament:
         self.tournament_size = tournament_size
 
     def select(self, population):
-        tournament = np.random.choice(population, self.tournament_size)
+        tournament = np.random.choice(population, self.tournament_size, replace=False)
         fitnesses = [ind.fitness for ind in tournament]
         idx = np.argmin(fitnesses)
         return tournament[idx]
