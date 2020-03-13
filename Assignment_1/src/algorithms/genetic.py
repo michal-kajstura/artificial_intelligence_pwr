@@ -43,8 +43,9 @@ class GeneticAlgorithm:
             if self._random(self.config['crossover_probability']):
                 new_individual = first_individual.crossover(second_individual)
             else:
-                first_individual.mutate(self.config['mutation_probability'])
-                new_individual = first_individual
+                new_individual = first_individual.copy()
+
+            new_individual.mutate(self.config['mutation_probability'])
 
             new_individual.fitness = self.fitness_function(new_individual.genome)
             new_population.append(new_individual)
@@ -53,6 +54,7 @@ class GeneticAlgorithm:
                 self.best_ever = new_individual
 
         return new_population
+
 
     @staticmethod
     def _random(probability):
@@ -76,15 +78,13 @@ class Individual:
         return genome
 
     def mutate(self, mutation_prob):
-        perform_mutation = np.random.rand(len(self.genome)) < mutation_prob
-
-        # TODO : Change this
-        for mut in range(perform_mutation.sum()):
-            first_swap_position = self._random_gene()
-            second_swap_position = self._random_gene()
-            temp = self.genome[first_swap_position]
-            self.genome[first_swap_position] = self.genome[second_swap_position]
-            self.genome[second_swap_position] = temp
+        for mut in range(len(self.genome)):
+            if np.random.rand() < mutation_prob:
+                first_swap_position = self._random_gene()
+                second_swap_position = self._random_gene()
+                temp = self.genome[first_swap_position]
+                self.genome[first_swap_position] = self.genome[second_swap_position]
+                self.genome[second_swap_position] = temp
 
     def _random_gene(self):
         return np.random.randint(0, len(self.genome))
@@ -105,10 +105,8 @@ class Individual:
                    (self.index >= crossover_point_2)] = other.genome[~is_in]
         return Individual(genome=new_genome)
 
-    @staticmethod
-    def _swap_genes(individual, first_half, second_half):
-        individual.genome[:len(first_half)] = first_half
-        individual.genome[:len(first_half)] = second_half
+    def copy(self):
+        return Individual(genome=self.genome.copy())
 
 
 class Tournament:
