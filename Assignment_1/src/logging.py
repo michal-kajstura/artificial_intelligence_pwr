@@ -9,7 +9,8 @@ class Logger:
         self.values = []
         self.callbacks = callbacks
 
-    def log(self, value):
+    def log(self, value, individual):
         self.values.append(value)
+        self.best_individual = individual
         for callback in self.callbacks:
             callback(self)
