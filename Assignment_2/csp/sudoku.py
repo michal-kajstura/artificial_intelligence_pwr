@@ -1,17 +1,15 @@
 from math import sqrt
 
-import pandas as pd
-
 from Assignment_2.csp.csp import CSPSolver
 
 
 class Sudoku:
     def solve(self, puzzle):
-        domain = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+        domain = set(range(1, 10))
         domains = self._parse_puzzle(puzzle, domain)
         constraints = [self._columns_is_valid, self._row_is_valid, self._small_square_is_valid]
-        solver = CSPSolver(domains, constraints)
-        return solver.solve()
+        self.solver = CSPSolver(domains, constraints)
+        return self.solver.solve()
 
     @staticmethod
     def _parse_puzzle(puzzle, domain):
@@ -60,15 +58,4 @@ def print_sudoku(result):
         board = '\n'.join([' '.join([str(result.get((row, col), '.'))
                                     for col in range(9)]) for row in range(9)])
         print(board)
-
-data_path = '/home/michal/studia/SI/artificial_intelligence_pwr/Assignment_2/data/Sudoku.csv'
-data = pd.read_csv(data_path, sep=';')
-puzzle = data.puzzle.iloc[0]
-
-from time import time
-s = time()
-solved = Sudoku().solve(puzzle)
-e = time()
-print(e - s)
-print_sudoku(solved)
 
