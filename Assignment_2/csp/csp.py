@@ -1,43 +1,55 @@
 from copy import deepcopy
+from itertools import tee
+from typing import Set, Tuple, Dict, List, Callable, Any
 
 from Assignment_2.csp.logger import CSVLogger
 
 
 class CSPSolver:
-    def __init__(self, domains, constraints):
+    def __init__(self, domains: Dict[Tuple[int, int], Set[int]],
+                 constraints: List[Callable[[Any, Any, Any], bool]]):
         self.domains = domains
         self.constraints = constraints
-        self.logger = CSVLogger()
 
     def solve(self):
+        # Sort domains by length
         self.domains = {k: v for k, v in sorted(self.domains.items(), key=lambda i: len(i[1]))}
 
-        self.all_results = []
-        result = dict()
+        self.all_solutions= []
+        solution = dict()
 
-        self.logger.start()
-        self._solve(result, list(self.domains.items()))
-        self.logger.end()
+        # self._forward_checking(result, self.domains)
+        self._solve(solution, iter(self.domains))
 
-        return self.all_results
+        return self.all_solutions
 
-    def _solve(self, result, domains_left):
-        if len(domains_left) > 0:
-            index, domain = domains_left[0]
-        else:
-            self.all_results.append(deepcopy(result))
-            self.logger.found_result()
+    def _solve(self, solution, domains_left):
+        domain_index = next(domains_left, None)
+
+        # Solution found
+        if domain_index is None:
+            self.all_solutions.append(deepcopy(solution))
             return
 
-        for var in domain:
-            self.logger.increment_tree_nodes_num()
+        domain_values = self.domains[domain_index]
+        for value in domain_values:
+            if self._check_constraints(value, domain_index, solution):
+                solution[domain_index] = value
 
-            if self._check_constraints(var, index, result):
-                result[index] = var
-                self._solve(result, domains_left[1:])
-                result.pop(index)
+                domain, domains_to_search = tee(domains_left)
+                self._solve(solution, domains_to_search)
+                solution.pop(domain_index)
 
-                self.logger.increment_backtrack_num()
+    #
+    # def _forward_checking(self, result, domains):
+    #     def _check_domains(value, index):
+    #         for domain in domains:
+    #             for constraint in self.constraints:
+    #                 if not constraint(value, index, result)
+    #
+    #     for index, value in result.items():
+
+
 
     def _check_constraints(self, var, index, result):
         for constraint in self.constraints:
