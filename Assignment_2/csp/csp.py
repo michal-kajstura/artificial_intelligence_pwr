@@ -1,58 +1,86 @@
 from copy import deepcopy
-from itertools import tee
-from typing import Set, Tuple, Dict, List, Callable, Any
+from itertools import chain
 
 from Assignment_2.csp.logger import CSVLogger
+from Assignment_2.csp.utils import print_sudoku
 
 
 class CSPSolver:
-    def __init__(self, domains: Dict[Tuple[int, int], Set[int]],
-                 constraints: List[Callable[[Any, Any, Any], bool]]):
+    def __init__(self, domains,
+                 constraints,
+                 forward_check=True):
         self.domains = domains
         self.constraints = constraints
+        self.logger = CSVLogger()
+        self._forward_check = forward_check
 
     def solve(self):
-        # Sort domains by length
-        self.domains = {k: v for k, v in sorted(self.domains.items(), key=lambda i: len(i[1]))}
-
         self.all_solutions= []
-        solution = dict()
 
-        # self._forward_checking(result, self.domains)
-        self._solve(solution, iter(self.domains))
+        self.logger.start()
+
+        solution = {k: list(v)[0] for k, v in self.domains.items() if len(v) == 1}
+        domains = [(k, v) for k, v in self.domains.items() if len(v) != 1]
+
+        if self._forward_check:
+            for field in solution.items():
+                _= self._forward_checking(field, domains)
+
+        self._solve(solution, domains)
+        self.logger.end()
 
         return self.all_solutions
 
     def _solve(self, solution, domains_left):
-        domain_index = next(domains_left, None)
 
         # Solution found
-        if domain_index is None:
+        if len(domains_left) == 0:
             self.all_solutions.append(deepcopy(solution))
+            self.logger.found_result()
             return
 
-        domain_values = self.domains[domain_index]
+        domain_index, domain_values = domains_left[0]
+
         for value in domain_values:
-            if self._check_constraints(value, domain_index, solution):
+            self.logger.increment_tree_nodes_num()
+
+            if self._check_constraints((domain_index, value), solution):
                 solution[domain_index] = value
 
-                domain, domains_to_search = tee(domains_left)
+                discarded = []
+                if self._forward_check:
+                    discarded = self._forward_checking((domain_index, value), domains_left[1:])
+                domains_to_search = domains_left[1:]
+
                 self._solve(solution, domains_to_search)
+
+                self.logger.increment_backtrack_num()
                 solution.pop(domain_index)
 
-    #
-    # def _forward_checking(self, result, domains):
-    #     def _check_domains(value, index):
-    #         for domain in domains:
-    #             for constraint in self.constraints:
-    #                 if not constraint(value, index, result)
-    #
-    #     for index, value in result.items():
+                for disc in discarded:
+                    for idx, dom in domains_left:
+                        if idx == disc:
+                            dom.add(value)
 
+    def _forward_checking(self, last_field, domains):
+        cells_to_remove = chain.from_iterable(
+            list(c(last_field, domains, is_domain=True)) for c in self.constraints)
+        cells_to_remove = set(cells_to_remove)
 
+        _, value = last_field
+        discarded = []
+        for domain_index, domain_values in domains:
+            if domain_index in cells_to_remove:
+                domain_values.discard(value)
+                discarded.append(domain_index)
+        return discarded
 
-    def _check_constraints(self, var, index, result):
+    def _check_constraints(self, field, result):
+        result_items = result.items()
         for constraint in self.constraints:
-            if not constraint(var, index, result):
+            try:
+                next(constraint(field, result_items))
                 return False
+            except StopIteration:
+                pass
         return True

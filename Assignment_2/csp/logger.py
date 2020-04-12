@@ -36,8 +36,7 @@ class Logger:
 
 
 class CSVLogger(Logger):
-    def log_to_file(self, filepath):
-        path_exist = Path(filepath).exists()
+    def log_to_file(self):
         to_write = {
             'first_sol_time': self.first_result_time,
             'first_sol_node_num': self.first_result_node_num,
@@ -47,9 +46,10 @@ class CSVLogger(Logger):
             'total_backtrack_num': self.backtracks_num,
             'num_of_solutions': self.num_of_solutions
         }
-        with open(filepath, 'a') as file:
-            writer = csv.DictWriter(file, to_write.keys())
-            if not path_exist:
-                writer.writeheader()
-            writer.writerow(to_write)
+        return to_write
+        # with open(filepath, 'a') as file:
+        #     writer = csv.DictWriter(file, to_write.keys())
+        #     if not path_exist:
+        #         writer.writeheader()
+        #     writer.writerow(to_write)
 

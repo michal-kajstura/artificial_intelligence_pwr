@@ -1,21 +1,28 @@
+from copy import deepcopy
+from functools import partial
 from math import sqrt
 
 from Assignment_2.csp.csp import CSPSolver
 
 
 class Sudoku:
-    def solve(self, puzzle):
+    def solve(self, puzzle, forward_check=True):
         domain = set(range(1, 10))
         domains = self._parse_puzzle(puzzle, domain)
-        constraints = [self._columns_is_valid, self._row_is_valid, self._small_square_is_valid]
-        self.solver = CSPSolver(domains, constraints)
+
+        # Constraints return iterable of conflicting cells.
+        # If that iterable is empty the constraint is satisfied
+        constraints = [partial(self._get_conflicting, self._conflicting_columns),
+                       partial(self._get_conflicting, self._conflicting_rows),
+                       partial(self._get_conflicting, self._conflicting_in_small_square)]
+        self.solver = CSPSolver(domains, constraints, forward_check)
         return self.solver.solve()
 
     @staticmethod
     def _parse_puzzle(puzzle, domain):
         def create_field(field):
             if field == '.':
-                return domain
+                return deepcopy(domain)
             else:
                 return {int(field)}
 
@@ -25,37 +32,26 @@ class Sudoku:
                 for j in range(rows_cols_num)}
 
     @staticmethod
-    def _columns_is_valid(var, index, result):
+    def _get_conflicting(predicate, field, result, is_domain=False):
+        index, var = field
         row, col = index
-        for (r, c), v in result.items():
-            if v == var and c == col and r != row:
-                return False
-        return True
+        for (r, c), dom in result:
+            is_in = var in dom if is_domain else var == dom
+            if is_in and predicate(r, row, c, col):
+                yield (r, c)
 
     @staticmethod
-    def _row_is_valid(var, index, result):
-        row, col = index
-        for (r, c), v in result.items():
-            if v == var and c != col and r == row:
-                return False
-        return True
+    def _conflicting_columns(r, row, c, col):
+        return c == col and r != row
 
     @staticmethod
-    def _small_square_is_valid(var, index, result):
-        row, col = index
+    def _conflicting_rows(r, row, c, col):
+        return c != col and r == row
+
+    @staticmethod
+    def _conflicting_in_small_square(r, row, c, col):
         small_square_row = row // 3
         small_square_col = col // 3
-        for (r, c), v in result.items():
-            if v == var \
-                and r // 3 == small_square_row \
-                and c // 3 == small_square_col\
-                and c != col and r != row:
-                return False
-        return True
-
-
-def print_sudoku(result):
-        board = '\n'.join([' '.join([str(result.get((row, col), '.'))
-                                    for col in range(9)]) for row in range(9)])
-        print(board)
-
+        return (r // 3 == small_square_row
+               and c // 3 == small_square_col
+               and c != col and r != row)
