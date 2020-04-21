@@ -6,7 +6,7 @@ from Assignment_2.csp.csp import CSPSolver
 
 
 class Sudoku:
-    def solve(self, puzzle, forward_check=True):
+    def solve(self, puzzle, **solver_kwargs):
         domain = set(range(1, 10))
         domains = self._parse_puzzle(puzzle, domain)
 
@@ -15,7 +15,7 @@ class Sudoku:
         constraints = [partial(self._get_conflicting, self._conflicting_columns),
                        partial(self._get_conflicting, self._conflicting_rows),
                        partial(self._get_conflicting, self._conflicting_in_small_square)]
-        self.solver = CSPSolver(domains, constraints, forward_check)
+        self.solver = CSPSolver(domains, constraints, **solver_kwargs)
         return self.solver.solve()
 
     @staticmethod

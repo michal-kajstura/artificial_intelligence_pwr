@@ -8,11 +8,13 @@ from Assignment_2.csp.utils import print_sudoku
 class CSPSolver:
     def __init__(self, domains,
                  constraints,
-                 forward_check=True):
+                 forward_check=True,
+                 domain_heuristic='most_constrained'):
         self.domains = domains
         self.constraints = constraints
         self.logger = CSVLogger()
         self._forward_check = forward_check
+        self._domain_heuristic = domain_heuristic
 
     def solve(self):
         self.all_solutions= []
@@ -47,20 +49,22 @@ class CSPSolver:
             if self._check_constraints((domain_index, value), solution):
                 solution[domain_index] = value
 
+                domains_to_search = self._choose_domain(domains_left)
+
                 discarded = []
                 if self._forward_check:
-                    discarded = self._forward_checking((domain_index, value), domains_left[1:])
-                domains_to_search = domains_left[1:]
+                    discarded = self._forward_checking((domain_index, value), domains_to_search)
 
                 self._solve(solution, domains_to_search)
 
-                self.logger.increment_backtrack_num()
                 solution.pop(domain_index)
 
                 for disc in discarded:
                     for idx, dom in domains_left:
                         if idx == disc:
                             dom.add(value)
+
+        self.logger.increment_backtrack_num()
 
     def _forward_checking(self, last_field, domains):
         cells_to_remove = chain.from_iterable(
@@ -84,3 +88,13 @@ class CSPSolver:
             except StopIteration:
                 pass
         return True
+
+    def _choose_domain(self, domains):
+        if self._domain_heuristic == 'most_constrained':
+            return sorted(domains[1:], key=lambda d: len(d[1]))
+        elif self._domain_heuristic == 'definition_order':
+            return domains[1:]
+        else:
+            raise ValueError()
+
+
