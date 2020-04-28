@@ -4,12 +4,13 @@ import sys
 import pygame
 
 from Assignment_3.connect4.board import Board, Player
+from Assignment_3.connect4.game import Game
 
 BACKGROUND_COLOR = (18, 20, 26)
 BOARD_COLOR = (13, 71, 161)
 CIRCLES_COLORS = {
-    Player.PLAYER1: (255, 87, 51),
-    Player.PLAYER2: (255, 214, 0),
+    Player.AI: (255, 87, 51),
+    Player.HUMAN: (255, 214, 0),
     0: BACKGROUND_COLOR
 }
 
@@ -27,7 +28,6 @@ height = (ROW_COUNT + 1) * SQUARESIZE
 
 screen = pygame.display.set_mode((width, height))
 
-board = Board(ROW_COUNT, COLUMN_COUNT)
 game_over = False
 
 def draw_board(board, screen):
@@ -55,30 +55,33 @@ def drop_circle(board, col, player):
 
 
 pygame.init()
-turn = Player.PLAYER1
+turn = Player.HUMAN
 
 pygame.draw.rect(screen, BACKGROUND_COLOR, (0, 0, width, height))
-draw_board(board, screen)
+
+game = Game()
+draw_board(game._board, screen)
 
 while not game_over:
     pygame.draw.rect(screen, BACKGROUND_COLOR, (0, 0, width, height))
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            sys.exit()
+    if turn == Player.HUMAN:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
 
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            pos_x, pos_y = event.pos
-            col = math.floor(pos_x / SQUARESIZE)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos_x, pos_y = event.pos
+                col = math.floor(pos_x / SQUARESIZE)
+                game.player_move(col)
+                game_over = game.check_end()
+                turn = Player.AI
 
-            drop_circle(board, col, turn)
+    else:
+        game.ai_move()
+        turn = Player.HUMAN
+        game_over = game.check_end()
 
-            if board.check_board_state(turn):
-                text_surface = FONT.render(f'{turn} won!', False, TEXT_COLOR)
-                screen.blit(text_surface, (SQUARESIZE // 2, 10))
-
-            draw_board(board, screen)
-
-            turn = Player.PLAYER1 if turn == Player.PLAYER2 else Player.PLAYER2
+    draw_board(game._board, screen)
 
 
