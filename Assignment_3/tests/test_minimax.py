@@ -11,9 +11,9 @@ class TestMinimax(unittest.TestCase):
 
     def test_block(self):
         board = Board()
-        _fill_board(board, [(5, 0), (5, 1), (5, 2)], Player.AI)
+        _fill_board(board, [(5, 0), (5, 1), (5, 2)], Player.HUMAN)
 
-        minimax = MiniMax(2, Player.HUMAN, Player.AI, heuristic)
+        minimax = MiniMax(5, Player.AI, Player.HUMAN, heuristic)
         column = minimax(board)
         self.assertEqual(3, column)
 
@@ -21,7 +21,7 @@ class TestMinimax(unittest.TestCase):
         board = Board()
         _fill_board(board, [(5, 0), (5, 2), (5, 3)], Player.AI)
 
-        minimax = MiniMax(2, Player.HUMAN, Player.AI, heuristic)
+        minimax = MiniMax(3, Player.HUMAN, Player.AI, heuristic)
         column = minimax(board)
         self.assertEqual(1, column)
 

@@ -7,7 +7,7 @@ from Assignment_3.minmax.minmax import MiniMax
 class Game:
     def __init__(self):
         self._board = Board()
-        self._minimax = MiniMax(3, Player.AI, Player.HUMAN, heuristic)
+        self._minimax = MiniMax(4, Player.AI, Player.HUMAN, heuristic)
         self._last_move = None
 
     def ai_move(self):

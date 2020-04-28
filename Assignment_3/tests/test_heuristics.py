@@ -12,44 +12,56 @@ class TestHeuristics(unittest.TestCase):
     def test_rows(self):
         board = Board()
 
-        # 3s
-        _fill_board(board, [(5, 0), (5, 1), (5, 2)], Player.AI)
-        _fill_board(board, [(0, 0), (0, 1), (0, 2)], Player.AI)
+        board._board = np.array([
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 0, 2, 2, 0],
+        ])
 
-        # 2s
-        _fill_board(board, [(0, 4), (0, 5)], Player.AI)
-        _fill_board(board, [(1, 5), (1, 6)], Player.AI)
-        _fill_board(board, [(4, 0), (4, 1)], Player.AI)
-        _fill_board(board, [(4, 4), (4, 5)], Player.AI)
+        result = count_rows(board)
 
-        #1s
-        _fill_board(board, [(2, 4)], Player.AI)
-
-        cols = count_rows(board)
-
-        self.assertDictEqual(cols[Player.AI], {
-            3: 2, 2: 4
+        self.assertDictEqual(result[Player.AI], {
+            3: 1,
+        })
+        self.assertDictEqual(result[Player.HUMAN], {
+            2: 1
         })
 
+    def test_rows_complicated(self):
+        board = Board()
+
+        board._board = np.array([
+            [2, 1, 2, 0, 0, 0, 0],
+            [2, 1, 2, 2, 1, 0, 0],
+            [1, 1, 1, 2, 2, 2, 0],
+        ])
+
+        result = count_rows(board.array)
+
+        self.assertDictEqual(result[Player.AI], dict()
+        )
+        self.assertDictEqual(result[Player.HUMAN], {
+            3: 1, 1:1
+        })
 
     def test_cols(self):
         board = Board()
 
-        # 3s
-        _fill_board(board, [(0, 0), (1, 0), (2, 0)], Player.AI)
+        board._board = np.array([
+            [2, 1, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0, 1],
+            [1, 1, 2, 0, 0, 0, 1],
+            [1, 2, 2, 0, 0, 0, 1],
+        ])
 
-        # 2s
-        _fill_board(board, [(0, 3), (1, 3)], Player.AI)
-        _fill_board(board, [(4, 3), (5, 3)], Player.AI)
-        _fill_board(board, [(4, 5), (5, 5)], Player.AI)
+        result = count_columns(board.array)
 
-        #1s
-        _fill_board(board, [(2, 4)], Player.AI)
-
-        cols = count_columns(board, Player.AI)
-
-        self.assertDictEqual(cols, {
-            3: 1, 2: 3
+        self.assertDictEqual(result[Player.AI], {
+            4: 2, 3: 1, 2: 1
+        })
+        self.assertDictEqual(result[Player.HUMAN], {
+            2: 1, 1:1
         })
 
     def test_diagonal(self):
@@ -63,7 +75,7 @@ class TestHeuristics(unittest.TestCase):
             [0, 0, 1, 0, 0, 1, 1],
         ])
 
-        actual = count_diagonals(board, Player.AI)
+        actual = count_diagonals(board.array)
         self.assertDictEqual(actual, {4:1, 3: 1,  2: 2})
 
 

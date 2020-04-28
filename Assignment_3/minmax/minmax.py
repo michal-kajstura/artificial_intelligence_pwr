@@ -1,6 +1,5 @@
-from operator import lt, gt
 import numpy as np
-import Assignment_3.minmax.heuristics as heur
+
 from Assignment_3.connect4.player import Player
 
 
@@ -13,7 +12,6 @@ class MiniMax:
 
     def __call__(self, board):
         _, best_col = self._minimax(board, self._max_depth, self._maximizing_player)
-        print('')
         return best_col
 
     def _minimax(self, board, depth, player):
@@ -40,11 +38,8 @@ class MiniMax:
                 eval = np.inf if player == self._maximizing_player else -np.inf
             else:
                 eval, _ = self._minimax(board, depth - 1, next_player)
-            evaluations.append((column, eval))
+            evaluations.append((eval, column))
 
             board.unset_field(column)
 
-        print(player == self._maximizing_player, sorted(evaluations, key=lambda e: e[0]))
-        e, c = fcn(evaluations, key=lambda e: e[1])
-        print(e,c)
-        return e,c
+        return fcn(evaluations, key=lambda e: e[0])
