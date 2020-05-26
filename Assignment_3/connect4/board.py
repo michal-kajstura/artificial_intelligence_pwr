@@ -8,7 +8,6 @@ DOTS = 4
 class Board:
     def __init__(self, rows=6, columns=7):
         self._board = np.zeros((rows, columns), dtype=np.int8)
-        self._last_dropped = []
 
     def drop_coin(self, column, player):
         rows = self._board.shape[0]
@@ -18,13 +17,11 @@ class Board:
                 self._board[row, column] = player
                 return row, column
 
-    def unset_field(self, column):
-        rows = self._board.shape[0]
+    def unset_field(self, row, column):
+        self._board[row, column] = Player.EMPTY
 
-        for row in range(rows):
-            if self._board[row, column] != Player.EMPTY:
-                self._board[row, column] = Player.EMPTY
-                break
+    def get_available_moves(self):
+        return  [c for c in range(self._board.shape[1]) if self._board[0, c] == Player.EMPTY]
 
     @property
     def array(self):

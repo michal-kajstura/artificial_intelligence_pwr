@@ -33,15 +33,15 @@ def count_rows(board):
     counts = {Player.HUMAN: defaultdict(int),
               Player.AI: defaultdict(int)}
 
-    for row in board:
-        for c in range(0, len(row) - 3):
-            window = row[c: c + 4]
-            counted = Counter(window)
-            if counted.get(Player.AI) is None and counted.get(Player.HUMAN) is not None:
-                counts[Player.HUMAN][counted[Player.HUMAN]] += 1
+    windowed = rolling_window(board, 4).reshape(-1, 4)
+    human = (windowed == Player.HUMAN).sum(axis=1)
+    ai = (windowed == Player.AI).sum(axis=1)
 
-            if counted.get(Player.HUMAN) is None and counted.get(Player.AI) is not None:
-                counts[Player.AI][counted[Player.AI]] += 1
+    for h, a in zip(human, ai):
+        if h == 0 and a != 0:
+            counts[Player.AI][a] += 1
+        if a == 0 and h != 0:
+            counts[Player.HUMAN][h] += 1
 
     return counts
 
@@ -50,6 +50,12 @@ def _add_dicts(d1, d2):
     for k, v in d1.items():
         d1[k] += d2.get(k, 0)
     return d1
+
+
+def rolling_window(a, window):
+    shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
+    strides = a.strides + (a.strides[-1],)
+    return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
 
 def count_diagonals(board):
@@ -64,7 +70,6 @@ def count_diagonals(board):
     }
 
     return all_diagonals
-
 
 def _count_diagonals(board):
     counts = {Player.HUMAN: defaultdict(int),

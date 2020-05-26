@@ -2,7 +2,7 @@ import unittest
 
 from Assignment_3.connect4.board import Board
 from Assignment_3.connect4.player import Player
-from Assignment_3.minmax.heuristics import count_columns, count_rows, count_diagonals
+from Assignment_3.algorithms.heuristics import count_columns, count_rows, count_diagonals
 from Assignment_3.tests.test_board import _fill_board
 import numpy as np
 
@@ -18,7 +18,7 @@ class TestHeuristics(unittest.TestCase):
             [1, 1, 1, 0, 2, 2, 0],
         ])
 
-        result = count_rows(board)
+        result = count_rows(board.array)
 
         self.assertDictEqual(result[Player.AI], {
             3: 1,

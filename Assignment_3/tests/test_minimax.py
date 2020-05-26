@@ -2,8 +2,8 @@ import unittest
 
 from Assignment_3.connect4.board import Board
 from Assignment_3.connect4.player import Player
-from Assignment_3.minmax.heuristics import heuristic
-from Assignment_3.minmax.minmax import MiniMax
+from Assignment_3.algorithms.heuristics import heuristic
+from Assignment_3.algorithms.minmax import MiniMax
 from Assignment_3.tests.test_board import _fill_board
 
 
@@ -13,7 +13,7 @@ class TestMinimax(unittest.TestCase):
         board = Board()
         _fill_board(board, [(5, 0), (5, 1), (5, 2)], Player.HUMAN)
 
-        minimax = MiniMax(5, Player.AI, Player.HUMAN, heuristic)
+        minimax = MiniMax(4, Player.AI, Player.HUMAN, heuristic)
         column = minimax(board)
         self.assertEqual(3, column)
 
